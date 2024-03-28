@@ -14,6 +14,8 @@ namespace KillFallout4.Fallout4
         public string PathToExe { get; protected set; }
         public string Name { get; protected set; }
 
+        public bool HasExited => _process?.HasExited ?? true;
+
         private Process? _process;
 
         public Fallout4Instance(Process falloutProcess)

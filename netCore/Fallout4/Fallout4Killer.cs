@@ -60,6 +60,13 @@ namespace KillFallout4.Fallout4
             {
                 _writer.WriteLine(ConsoleColor.Yellow, $"Killing {proc.Name}...");
                 proc.Kill();
+                System.Threading.Thread.Sleep(250);
+
+                while(proc.HasExited == false)
+                {
+                    _logger.LogVerbose($"Waiting for {proc.Name} to exit...");
+                    System.Threading.Thread.Sleep(1000);
+                }
             }
         }
 

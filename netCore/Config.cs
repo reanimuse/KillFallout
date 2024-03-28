@@ -13,6 +13,7 @@ namespace KillFallout4
             {
                 if (value != null && value != _savedConfig.PathToLastLaunchFile )
                 {
+                    _isDirty = true;
                     _savedConfig.PathToLastLaunchFile = value;
                 }
             }
@@ -20,6 +21,7 @@ namespace KillFallout4
 
         private SavedConfig _savedConfig;
         private IF4KLogger _logger;
+        private bool _isDirty = false;
 
         private string _localConfigFilePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KillFallout4.json");
 
@@ -51,7 +53,16 @@ namespace KillFallout4
         public void SaveConfig()
         {
             _logger.LogVerbose($"Saving config to: {_localConfigFilePath}");
-            JsonUtils.WriteFile(_localConfigFilePath, _savedConfig);
+
+            if (!_isDirty)
+            {
+                _logger.LogVerbose("Skipping save as config has not changed");
+            }
+            else
+            {
+                JsonUtils.WriteFile(_localConfigFilePath, _savedConfig);
+                _isDirty = false;
+            }
         }
     }
 
