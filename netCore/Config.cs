@@ -19,11 +19,13 @@ namespace KillFallout4
         }
 
         private SavedConfig _savedConfig;
+        private IF4KLogger _logger;
 
         private string _localConfigFilePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KillFallout4.json");
 
-        public Config(string[] args) 
+        public Config(IF4KLogger logger, string[] args) 
         {
+            _logger = logger;
             foreach (var arg in args)
             {
                 var switchedArg = arg.TrimStart('-', '/', '\\');
@@ -37,7 +39,8 @@ namespace KillFallout4
         {
             if (File.Exists(_localConfigFilePath))
             {
-                _savedConfig = JsonFileReader.Read<SavedConfig>(_localConfigFilePath) ?? new SavedConfig();
+                _logger.LogVerbose($"Loading config from: {_localConfigFilePath}");
+                _savedConfig = JsonUtils.ReadFile<SavedConfig>(_localConfigFilePath) ?? new SavedConfig();
 
             } else
             {
@@ -47,7 +50,8 @@ namespace KillFallout4
 
         public void SaveConfig()
         {
-            JsonFileReader.Write(_localConfigFilePath, _savedConfig);
+            _logger.LogVerbose($"Saving config to: {_localConfigFilePath}");
+            JsonUtils.WriteFile(_localConfigFilePath, _savedConfig);
         }
     }
 

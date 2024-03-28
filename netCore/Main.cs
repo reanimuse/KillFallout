@@ -1,7 +1,9 @@
 ﻿using KillFallout4.Fallout4;
+using KillFallout4.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,10 +13,12 @@ namespace KillFallout4
     {
         static int Main(string[] args)
         {
-            var writer = new ConsoleWriter();
-            var config = new Config(args);
+            var logger = new Logger();
+            logger.LogInfo("Starting app");
+            var writer = new ConsoleWriter(logger);
+            var config = new Config(logger, args);
 
-            using (var killer = new Fallout4Killer(writer, config.PathToLastKnownLauncher))
+            using (var killer = new Fallout4Killer(writer, logger, config.PathToLastKnownLauncher))
             {
                 killer.FindInstances();
 

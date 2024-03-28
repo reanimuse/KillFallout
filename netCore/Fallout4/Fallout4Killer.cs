@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KillFallout4.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,15 +15,17 @@ namespace KillFallout4.Fallout4
 
         private Fallout4Instance[] _FalloutInstances = new Fallout4Instance[0];
         private ConsoleWriter _writer;
+        private IF4KLogger _logger;
 
         private string _pathToFalloutFolder;
         private bool _isSteamApp;
 
         public string PathToLauncher { get; set; }
 
-        public Fallout4Killer(ConsoleWriter writer, string? pathToLastKnownLauncher)
+        public Fallout4Killer(ConsoleWriter writer, IF4KLogger logger, string? pathToLastKnownLauncher)
         {
             _writer = writer;
+            _logger = logger;
             PathToLauncher = pathToLastKnownLauncher ?? string.Empty;
 
             _isSteamApp = Fallout4Instance.CheckSteamPath(PathToLauncher);
@@ -35,6 +38,8 @@ namespace KillFallout4.Fallout4
 
             _FalloutInstances = allProcs.Where(x => x.ProcessName.StartsWith("Fallout", StringComparison.OrdinalIgnoreCase))
                 .Select(x => new Fallout4Instance(x)).ToArray();
+
+            _logger.LogVerbose($"Found {_FalloutInstances.Length} Fallout4 processes in {allProcs.Length} total running processes");
 
             foreach (var proc in _FalloutInstances)
             {
@@ -61,16 +66,24 @@ namespace KillFallout4.Fallout4
 
         public void Restart(bool useLauncher = false)
         {
+            Process launchedProcess;
+
             _writer.WriteLine(ConsoleColor.Green, $"Starting Fallout... (launcher: {useLauncher})");
+
+            _logger.LogVerbose($"Starting fallout using: {PathToLauncher}");
+
 
             if (Fallout4Instance.CheckSteamPath(PathToLauncher))
             {
-                Process.Start(new ProcessStartInfo(PathToLauncher) { UseShellExecute = true });
+                launchedProcess = Process.Start(new ProcessStartInfo(PathToLauncher) { UseShellExecute = true });
             }
             else
             {
-                Process.Start(PathToLauncher);
+                launchedProcess = Process.Start(PathToLauncher);
             }
+
+            var result = JsonUtils.Serialize(launchedProcess?.ToSafeWrapper(),false,false);
+            _logger.LogVerbose($"Process Launched: {result}");
         }
 
 
