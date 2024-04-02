@@ -37,7 +37,7 @@ namespace KillFallout4.Fallout4
             var allProcs = Process.GetProcesses();
 
             _FalloutInstances = allProcs.Where(x => x.ProcessName.StartsWith("Fallout", StringComparison.OrdinalIgnoreCase))
-                .Select(x => new Fallout4Instance(x)).ToArray();
+                .Select(x => new Fallout4Instance(_logger, x)).ToArray();
 
             _logger.LogVerbose($"Found {_FalloutInstances.Length} Fallout4 processes in {allProcs.Length} total running processes");
 
@@ -60,13 +60,6 @@ namespace KillFallout4.Fallout4
             {
                 _writer.WriteLine(ConsoleColor.Yellow, $"Killing {proc.Name}...");
                 proc.Kill();
-                System.Threading.Thread.Sleep(250);
-
-                while(proc.HasExited == false)
-                {
-                    _logger.LogVerbose($"Waiting for {proc.Name} to exit...");
-                    System.Threading.Thread.Sleep(1000);
-                }
             }
         }
 
