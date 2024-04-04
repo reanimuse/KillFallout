@@ -45,6 +45,7 @@ namespace KillFallout4.Fallout4
                 return;
             }
 
+            _logger.LogVerbose($"Killing Process {Name}...");
             System.Threading.Thread.Sleep(10);
             _process?.Kill(true);
             System.Threading.Thread.Sleep(250);
