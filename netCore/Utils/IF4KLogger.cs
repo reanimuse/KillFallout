@@ -2,6 +2,8 @@
 {
     internal interface IF4KLogger
     {
+        string PathToCurrentLogFile { get; }
+        LogLevel LogLevel { get; set; }
         void Log(LogLevel level, Exception? ex, string? message);
         void Log(LogLevel level, string message);
         void LogError(Exception ex, string message);

@@ -15,8 +15,11 @@ namespace KillFallout4
         {
             var logger = new Logger();
             logger.LogInfo("Starting app");
-            var writer = new ConsoleWriter(logger);
             var config = new Config(logger, args);
+            var writer = new ConsoleWriter(logger);
+
+            writer.WriteLineVerbose($"Config path: {config.PathToConfigFile}");
+            writer.WriteLineVerbose($"Log File: {logger.PathToCurrentLogFile}");
 
             using (var killer = new Fallout4Killer(writer, logger, config.PathToLastKnownLauncher))
             {
@@ -24,7 +27,7 @@ namespace KillFallout4
 
                 if (!killer.ActiveInstances)
                 {
-                    killer.PathToLauncher = config.PathToLastKnownLauncher;
+                    killer.PathToLauncher = config.PathToLastKnownLauncher?? string.Empty;
                     writer.WriteLine(ConsoleColor.Green, "Fallout is not running");
 
                     if (config.Restart && config.PathToLastKnownLauncher != string.Empty)

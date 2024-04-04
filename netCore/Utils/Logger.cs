@@ -22,13 +22,30 @@ namespace KillFallout4.Utils
 
         public string LogFolder => _logFolder;
 
+        public string PathToCurrentLogFile { get; protected set; }
+
+        public LogLevel LogLevel { get; set; }
+
+        public Logger() : this (LogLevel.Information) { }
+
+        public Logger(LogLevel logLevel)
+        {
+            LogLevel = logLevel;
+        }
+
+
         public void LogError(string message) { Log(LogLevel.Error, message); }
         public void LogError(Exception ex, string message) { Log(LogLevel.Error, ex, message); }
         public void LogWarning(string message) { Log(LogLevel.Warning, message); }
         public void LogInfo(string message) { Log(LogLevel.Information, message); }
         public void LogVerbose(string message) { Log(LogLevel.Verbose, message); }
 
+        public void Log(string message) { Log(this.LogLevel, null, message); }
+
+        public void Log(Exception? ex, string? message) { Log(this.LogLevel, ex, message); }
+
         public void Log(LogLevel level, string message) { Log(level, null, message); }
+
 
         public void Log(LogLevel level, Exception? ex, string? message)
         {
@@ -45,12 +62,20 @@ namespace KillFallout4.Utils
 
             var outMsg = $"{logTime},{levelMsg},\"{trimmedMsg}\",\"{logErrMsg}\"";
 
+            PathToCurrentLogFile = BuildLogFile(logDateTime);
+
+            File.AppendAllText(PathToCurrentLogFile, outMsg + Environment.NewLine);
+        }
+
+        private static string BuildLogFile(DateTime logDateTime)
+        {
             var logFileName = logDateTime.ToString("yyyyMMdd") + "_killFallout4.log";
 
-            var logFileFullName = Path.Combine(_logFolder, logFileName);
+            var _logFilePath = Path.Combine(_logFolder, logFileName);
 
-            File.AppendAllText(logFileFullName, outMsg + Environment.NewLine);
+            return _logFilePath;
         }
+
 
         private static string BuildErrorMessage(Exception? ex)
         {

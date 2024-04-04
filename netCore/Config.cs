@@ -5,6 +5,9 @@ namespace KillFallout4
     internal class Config
     {
         public bool Restart { get; protected set; }
+        public bool Verbose { get; protected set; }
+
+        public string PathToConfigFile => _localConfigFilePath;
 
         public string? PathToLastKnownLauncher
         {
@@ -32,7 +35,10 @@ namespace KillFallout4
             {
                 var switchedArg = arg.TrimStart('-', '/', '\\');
                 if (string.Compare(switchedArg, "restart", true) == 0) Restart = true;
+                if (string.Compare(switchedArg, "verbose", true) == 0) Verbose = true;
             }
+
+            if (Verbose) logger.LogLevel = LogLevel.Verbose;
 
             LoadSavedConfig();
         }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,19 +13,38 @@ namespace KillFallout4
     {
         IF4KLogger _logger;
 
-        public ConsoleWriter(IF4KLogger logger)
+        private bool _verbose = false;
+
+        public bool Verbose => _verbose || _logger.LogLevel == LogLevel.Verbose;
+
+        public ConsoleWriter(IF4KLogger logger, bool verbose = false)
         {
             _logger = logger;
+            _verbose = verbose;
         }
+
         public void WriteLine(string msg)
         {
             _logger.LogInfo(msg);
             Console.WriteLine(msg);
         }
 
+        public void WriteLineVerbose(string msg)
+        {
+            WriteLineVerbose(ConsoleColor.Gray, msg);
+        }
+
         public void WriteLine(ConsoleColor foregroundColor, string msg)
         {
             WriteLine(foregroundColor, Console.BackgroundColor, msg);
+        }
+
+        public void WriteLineVerbose(ConsoleColor foregroundColor, string msg)
+        {
+            if (Verbose)
+            {
+                WriteLine(foregroundColor, Console.BackgroundColor, msg);
+            }
         }
 
         public void WriteLine(ConsoleColor foregroundColor, ConsoleColor backgroundColor, string msg)
