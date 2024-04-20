@@ -17,10 +17,12 @@ namespace KillFallout4.Fallout4
         private ConsoleWriter _writer;
         private IF4KLogger _logger;
 
-        private string _pathToFalloutFolder;
+        private string _pathToFalloutFolder = string.Empty;
         private bool _isSteamApp;
+        private bool _disposed;
 
         public string PathToLauncher { get; set; }
+
 
         public Fallout4Killer(ConsoleWriter writer, IF4KLogger logger, string? pathToLastKnownLauncher)
         {
@@ -54,6 +56,7 @@ namespace KillFallout4.Fallout4
             PathToLauncher = FindLauncherPath(false);
         }
 
+
         public void KillAll()
         {
             foreach (var proc in _FalloutInstances)
@@ -66,6 +69,12 @@ namespace KillFallout4.Fallout4
 
         public void Restart(bool useLauncher = false)
         {
+            if (PathToLauncher == string.Empty)
+            {
+                _logger.LogVerbose($"Unable to restart as there is no PathToLauncher defined");
+                return;
+            }
+
             Process launchedProcess;
 
             _writer.WriteLine(ConsoleColor.Green, $"Starting Fallout... (launcher: {useLauncher})");
@@ -82,7 +91,8 @@ namespace KillFallout4.Fallout4
                 launchedProcess = Process.Start(PathToLauncher);
             }
 
-            var result = JsonUtils.Serialize(launchedProcess?.ToSafeWrapper(),false,false);
+            var result = JsonUtils.Serialize(new SerializableProcessWrapper(launchedProcess),false,false);
+
             _logger.LogVerbose($"Process Launched: {result}");
         }
 
@@ -102,7 +112,8 @@ namespace KillFallout4.Fallout4
                 {
                     var launchFile = useLauncher ? "Fallout4Launcher.exe" : "Fallout4.exe";
                     launchPath = Path.Join(_pathToFalloutFolder, launchFile);
-                } else
+                }
+                else
                 {
                     launchPath = PathToLauncher;
                 }
@@ -114,13 +125,24 @@ namespace KillFallout4.Fallout4
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+
+        public void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            // release any unmanaged instances
             for (var i = 0; i < _FalloutInstances.Length; i++)
             {
                 var proc = _FalloutInstances[i];
-                if (proc != null) proc.Dispose();
-                _FalloutInstances[i] = null;
+                proc.Dispose();
             }
             _FalloutInstances = new Fallout4Instance[0];
+
+            _disposed = true;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace KillFallout4.Utils
         Error = 3
     }
 
-    internal class Logger : IF4KLogger
+    internal class F4KLogger : IF4KLogger
     {
         private static string _logFolder;
 
@@ -26,9 +26,9 @@ namespace KillFallout4.Utils
 
         public LogLevel LogLevel { get; set; }
 
-        public Logger() : this (LogLevel.Information) { }
+        public F4KLogger() : this (LogLevel.Information) { }
 
-        public Logger(LogLevel logLevel)
+        public F4KLogger(LogLevel logLevel)
         {
             LogLevel = logLevel;
         }
@@ -67,6 +67,7 @@ namespace KillFallout4.Utils
             File.AppendAllText(PathToCurrentLogFile, outMsg + Environment.NewLine);
         }
 
+
         private static string BuildLogFile(DateTime logDateTime)
         {
             var logFileName = logDateTime.ToString("yyyyMMdd") + "_killFallout4.log";
@@ -98,7 +99,8 @@ namespace KillFallout4.Utils
             return result.ToString().Trim('\n', '\r'); ;
         }
 
-        static Logger()
+
+        static F4KLogger()
         {
             var asm = Assembly.GetExecutingAssembly();
 

@@ -28,20 +28,32 @@ namespace KillFallout4
 
         private string _localConfigFilePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KillFallout4.json");
 
-        public Config(IF4KLogger logger, string[] args) 
+        public Config(IF4KLogger logger)
         {
             _logger = logger;
-            foreach (var arg in args)
-            {
-                var switchedArg = arg.TrimStart('-', '/', '\\');
-                if (string.Compare(switchedArg, "restart", true) == 0) Restart = true;
-                if (string.Compare(switchedArg, "verbose", true) == 0) Verbose = true;
-            }
 
             if (Verbose) logger.LogLevel = LogLevel.Verbose;
 
             LoadSavedConfig();
         }
+
+
+        public void ProcessCommandArgs(string[] args)
+        {
+            foreach (var arg in args)
+            {
+                var switchChar = arg.StartsWithAny('-', '/', '\\');
+                if (switchChar != null)
+                {
+                    var switchedArg = arg.TrimStart(switchChar.Value);
+                    if (string.Compare(switchedArg, "restart", true) == 0) Restart = true;
+                    if (string.Compare(switchedArg, "verbose", true) == 0) Verbose = true;
+                }
+            }
+
+            if (Verbose) _logger.LogLevel = LogLevel.Verbose;
+        }
+
 
         private void LoadSavedConfig()
         {
@@ -55,6 +67,7 @@ namespace KillFallout4
                 _savedConfig = new SavedConfig();
             }
         }
+
 
         public void SaveConfig()
         {

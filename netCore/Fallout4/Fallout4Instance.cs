@@ -37,6 +37,7 @@ namespace KillFallout4.Fallout4
             _process = falloutProcess;
         }
 
+
         public void Kill()
         {
             if (HasExited)
@@ -52,6 +53,7 @@ namespace KillFallout4.Fallout4
 
             var stillRunning = Process.GetProcesses().Any(x => x.ProcessName == ProcessName);
 
+            // looping because the .HasExited property on the Process object does not reliably show if the process has actually exited
             while (stillRunning)
             {
                 _logger.LogVerbose($"Waiting for {Name} to exit... (HasExited: {HasExited})");
@@ -67,6 +69,7 @@ namespace KillFallout4.Fallout4
             if (_process != null) { _process.Dispose(); }
             _process = null;
         }
+
 
         public static bool CheckSteamPath(string path)
         {
