@@ -1,4 +1,5 @@
 ﻿using KillFallout4.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace KillFallout4
 {
@@ -32,7 +33,7 @@ namespace KillFallout4
         {
             _logger = logger;
 
-            if (Verbose) logger.LogLevel = LogLevel.Verbose;
+            if (Verbose) logger.LogLevel = LogLevel.Trace;
 
             LoadSavedConfig();
         }
@@ -51,7 +52,7 @@ namespace KillFallout4
                 }
             }
 
-            if (Verbose) _logger.LogLevel = LogLevel.Verbose;
+            if (Verbose) _logger.LogLevel = LogLevel.Trace;
         }
 
 

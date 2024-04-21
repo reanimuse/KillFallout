@@ -1,6 +1,8 @@
-﻿namespace KillFallout4.Utils
+﻿using Microsoft.Extensions.Logging;
+
+namespace KillFallout4.Utils
 {
-    internal interface IF4KLogger
+    internal interface IF4KLogger: ILogger
     {
         string PathToCurrentLogFile { get; }
         LogLevel LogLevel { get; set; }
@@ -10,6 +12,7 @@
         void LogError(string message);
         void LogInfo(string message);
         void LogVerbose(string message);
+        void LogTrace(string message);
         void LogWarning(string message);
     }
 }

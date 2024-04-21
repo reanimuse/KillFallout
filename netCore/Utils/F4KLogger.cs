@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -8,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace KillFallout4.Utils
 {
-    public enum LogLevel
-    {
-        Verbose = 0,
-        Information = 1,
-        Warning = 2,
-        Error = 3
-    }
+    //public enum LogLevel
+    //{
+    //    Verbose = 0,
+    //    Information = 1,
+    //    Warning = 2,
+    //    Error = 3
+    //}
 
     internal class F4KLogger : IF4KLogger
     {
@@ -22,7 +23,7 @@ namespace KillFallout4.Utils
 
         public string LogFolder => _logFolder;
 
-        public string PathToCurrentLogFile { get; protected set; }
+        public string PathToCurrentLogFile { get; protected set; } = string.Empty;
 
         public LogLevel LogLevel { get; set; }
 
@@ -38,17 +39,17 @@ namespace KillFallout4.Utils
         public void LogError(Exception ex, string message) { Log(LogLevel.Error, ex, message); }
         public void LogWarning(string message) { Log(LogLevel.Warning, message); }
         public void LogInfo(string message) { Log(LogLevel.Information, message); }
-        public void LogVerbose(string message) { Log(LogLevel.Verbose, message); }
+        public void LogVerbose(string message) { Log(LogLevel.Trace, message); }
+        public void LogTrace(string message) { Log(LogLevel.Trace, message); }
 
         public void Log(string message) { Log(this.LogLevel, null, message); }
-
         public void Log(Exception? ex, string? message) { Log(this.LogLevel, ex, message); }
-
         public void Log(LogLevel level, string message) { Log(level, null, message); }
-
 
         public void Log(LogLevel level, Exception? ex, string? message)
         {
+            if (!IsEnabled(level)) return;
+
             var logDateTime = DateTime.Now;
             var levelMsg = level.ToString();
             var logTime = logDateTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
@@ -96,7 +97,37 @@ namespace KillFallout4.Utils
 
             result.AppendLine(ex.StackTrace);
 
-            return result.ToString().Trim('\n', '\r'); ;
+            return result.ToString().Trim('\n', '\r'); 
+        }
+
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return this.LogLevel != LogLevel.None && this.LogLevel >= logLevel;
+        }
+
+
+        public IDisposable? BeginScope<TState>(TState state)
+        {
+            return null;
+        }
+
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            if (!IsEnabled(logLevel)) return;
+
+            var msg = string.Empty;
+            if (formatter != null)
+            {
+                msg = formatter(state, exception);
+            }
+            else
+            {
+                msg = $"EventID: {eventId}, State: {state}";
+            }
+
+            this.Log(logLevel, exception, msg);
         }
 
 

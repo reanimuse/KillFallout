@@ -19,7 +19,7 @@ namespace KillFallout4.Fallout4
 
         private string _pathToFalloutFolder = string.Empty;
         private bool _isSteamApp;
-        private bool _disposed;
+        public bool IsDisposed { get; protected set; }
 
         public string PathToLauncher { get; set; }
 
@@ -31,6 +31,10 @@ namespace KillFallout4.Fallout4
             PathToLauncher = pathToLastKnownLauncher ?? string.Empty;
 
             _isSteamApp = Fallout4Instance.CheckSteamPath(PathToLauncher);
+        }
+
+        ~Fallout4Killer() {
+            Dispose(false);
         }
 
 
@@ -75,7 +79,7 @@ namespace KillFallout4.Fallout4
                 return;
             }
 
-            Process launchedProcess;
+            Process? launchedProcess;
 
             _writer.WriteLine(ConsoleColor.Green, $"Starting Fallout... (launcher: {useLauncher})");
 
@@ -125,6 +129,7 @@ namespace KillFallout4.Fallout4
 
         public void Dispose()
         {
+            if (IsDisposed) return;
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -132,7 +137,7 @@ namespace KillFallout4.Fallout4
 
         public void Dispose(bool disposing)
         {
-            if (_disposed) return;
+            if (IsDisposed) return;
 
             // release any unmanaged instances
             for (var i = 0; i < _FalloutInstances.Length; i++)
@@ -142,7 +147,7 @@ namespace KillFallout4.Fallout4
             }
             _FalloutInstances = new Fallout4Instance[0];
 
-            _disposed = true;
+            IsDisposed = true;
         }
     }
 }
