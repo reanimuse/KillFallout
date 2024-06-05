@@ -28,15 +28,17 @@ namespace KillFallout4
             using (var killer = new Fallout4Killer(writer, logger, config.PathToLastKnownLauncher))
             {
                 killer.PathToLauncher = config.PathToLastKnownLauncher ?? string.Empty;
+                killer.PathToFalloutFolder = config.Fallout4Folder ?? string.Empty;
 
                 KillFalloutInstances(writer, killer);
 
                 if (config.Restart)
                 {
-                    killer.Restart();
+                    killer.Restart(false, config.UseScriptExtenderIfPresent);
                 }
 
                 config.PathToLastKnownLauncher = killer.PathToLauncher;
+                config.Fallout4Folder = killer.PathToFalloutFolder;
                 config.SaveConfig();
             }
 

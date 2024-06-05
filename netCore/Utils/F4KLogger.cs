@@ -103,7 +103,7 @@ namespace KillFallout4.Utils
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return this.LogLevel != LogLevel.None && this.LogLevel >= logLevel;
+            return this.LogLevel != LogLevel.None && (int)this.LogLevel <= (int)logLevel;
         }
 
 

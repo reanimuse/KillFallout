@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "KillFallout4": {
+      "commandName": "Project",
+      "commandLineArgs": "-restart -verbose"
+    }
+  }
+}
