@@ -1,25 +1,30 @@
 param(
     [switch] $Restart,
-    [switch] $Silent
+    [switch] $Silent,
+    [switch] $London
 )
 
 $runCommandPath = join-path $PSScriptRoot "Run-Command.ps1"
 
 $pathToFalloutRestart = "steam://rungameid/377160 -nolauncher"
-$doRestart = $false
+$pathToFalloutLondon = "E:\Games\gog\Fallout London\installer.exe"
 $secondsBetweenKillRetries = 5
 $maxTimeToTryKill = 90
 
 $sounds = @{
-    NotFound = "$($env:SystemRoot)\Media\Windows Message Nudge.wav";
-    InstanceKilled = "$($env:SystemRoot)\Media\Windows Proximity Notification.wav";
+    NotFound           = "$($env:SystemRoot)\Media\Windows Message Nudge.wav";
+    InstanceKilled     = "$($env:SystemRoot)\Media\Windows Proximity Notification.wav";
     AllInstancesKilled = "$($env:SystemRoot)\Media\Windows Unlock.wav"
+}
+
+if (-not [string]::IsNullOrWhiteSpace($pathToFalloutLondon) -and $London) {
+    $pathToFalloutRestart = $pathToFalloutLondon
 }
 
 function PlayTone([string] $WAVFilePath) {
     if ($Silent.IsPresent) { return }
     #$tone =  "$($env:SystemRoot)\Media\Windows Notify.wav"
-    $player =  New-Object System.Media.SoundPlayer($WAVFilePath)
+    $player = New-Object System.Media.SoundPlayer($WAVFilePath)
     $player.Play()
     $player.Dispose()
 }
@@ -42,7 +47,7 @@ function KillRunningProcess([Int] $processId) {
 
 function KillFalloutProcs([Object[]] $procs) {
     $remainingProcs = -1
-    if ($null -eq $procs) { return $remainingProcs}
+    if ($null -eq $procs) { return $remainingProcs }
 
     $remainingProcs = $procs.Length
 
@@ -60,11 +65,9 @@ function KillFalloutProcs([Object[]] $procs) {
 
 
 function KillRunningFalloutProcesses() {
-    $wasRunning = $false
-
     $timer = new-timespan -seconds $maxTimeToTryKill
     $clock = [diagnostics.stopwatch]::StartNew()
-    while ($clock.elapsed -lt $timer){
+    while ($clock.elapsed -lt $timer) {
         $f4 = GetFalloutRunningProcesses
 
         $remaining = KillFalloutProcs $f4

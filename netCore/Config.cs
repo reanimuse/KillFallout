@@ -7,6 +7,7 @@ namespace KillFallout4
     {
         public bool Restart { get; protected set; }
         public bool Verbose { get; protected set; }
+        public bool UseScriptExtenderIfPresent { get; protected set; }
 
         public string PathToConfigFile => _localConfigFilePath;
 
@@ -19,6 +20,19 @@ namespace KillFallout4
                 {
                     _isDirty = true;
                     _savedConfig.PathToLastLaunchFile = value;
+                }
+            }
+        }
+
+        public string? Fallout4Folder
+        {
+            get => _savedConfig.Fallout4Folder;
+            set
+            {
+                if (value != null && value != _savedConfig.Fallout4Folder)
+                {
+                    _isDirty = true;
+                    _savedConfig.Fallout4Folder = value;
                 }
             }
         }
@@ -49,6 +63,7 @@ namespace KillFallout4
                     var switchedArg = arg.TrimStart(switchChar.Value);
                     if (string.Compare(switchedArg, "restart", true) == 0) Restart = true;
                     if (string.Compare(switchedArg, "verbose", true) == 0) Verbose = true;
+                    if (string.Compare(switchedArg, "f4se", true) == 0) UseScriptExtenderIfPresent = true;
                 }
             }
 
@@ -90,5 +105,6 @@ namespace KillFallout4
     internal class SavedConfig
     {
         public string? PathToLastLaunchFile { get; set; }
+        public string? Fallout4Folder { get; set; }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using KillFallout4.Utils;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,6 +24,7 @@ namespace KillFallout4.Fallout4
         public bool IsDisposed { get; protected set; }
 
         public string PathToLauncher { get; set; }
+        public string PathToFalloutFolder { get; set; }
 
 
         public Fallout4Killer(ConsoleWriter writer, IF4KLogger logger, string? pathToLastKnownLauncher)
@@ -42,7 +45,7 @@ namespace KillFallout4.Fallout4
         {
             var allProcs = Process.GetProcesses();
 
-            _FalloutInstances = allProcs.Where(x => x.ProcessName.StartsWith("Fallout", StringComparison.OrdinalIgnoreCase))
+            _FalloutInstances = allProcs.Where(x => Fallout4Instance.IsFallout4Process(x))
                 .Select(x => new Fallout4Instance(_logger, x)).ToArray();
 
             _logger.LogVerbose($"Found {_FalloutInstances.Length} Fallout4 processes in {allProcs.Length} total running processes");
@@ -54,6 +57,11 @@ namespace KillFallout4.Fallout4
                 {
                     var info = new FileInfo(proc.PathToExe);
                     _pathToFalloutFolder = info.Directory?.FullName ?? string.Empty;
+
+                    if (proc.IsFallout4Exe)
+                    {
+                        this.PathToFalloutFolder = info.Directory?.FullName ?? string.Empty;
+                    }
                 }
             }
 
@@ -65,13 +73,12 @@ namespace KillFallout4.Fallout4
         {
             foreach (var proc in _FalloutInstances)
             {
-                _writer.WriteLine(ConsoleColor.Yellow, $"Killing {proc.Name}...");
-                proc.Kill();
+                proc.Kill(_writer);
             }
         }
 
 
-        public void Restart(bool useLauncher = false)
+        public void Restart(bool useLauncher = false, bool useScriptExtender = false)
         {
             if (PathToLauncher == string.Empty)
             {
@@ -85,19 +92,69 @@ namespace KillFallout4.Fallout4
 
             _logger.LogVerbose($"Starting fallout using: {PathToLauncher}");
 
-
-            if (Fallout4Instance.CheckSteamPath(PathToLauncher))
+            var pathToStartFallout = useScriptExtender ? UseScriptExtenderIfPresent(PathToLauncher) : PathToLauncher;
+            var workingFolder = string.Empty;
+            if (pathToStartFallout.EndsWith(".exe", StringComparison.InvariantCultureIgnoreCase))
             {
-                launchedProcess = Process.Start(new ProcessStartInfo(PathToLauncher) { UseShellExecute = true });
+                var info = new FileInfo(pathToStartFallout);
+                workingFolder = info.Directory?.FullName ?? string.Empty;
+            }
+
+            if (UseProcessStartInfo(pathToStartFallout, useScriptExtender))
+            {
+                var startArgs = new ProcessStartInfo()
+                {
+                    UseShellExecute = true,
+                    WorkingDirectory = workingFolder,
+                    WindowStyle = ProcessWindowStyle.Normal,
+                    FileName = pathToStartFallout
+                };
+
+                if (useScriptExtender && IsScriptExtender(pathToStartFallout))
+                {
+                    startArgs.UseShellExecute = false;
+                    _writer.WriteLine(ConsoleColor.Green, $" ... using ScriptExtender ");
+                }
+
+                launchedProcess = Process.Start(startArgs);
             }
             else
             {
-                launchedProcess = Process.Start(PathToLauncher);
+                launchedProcess = Process.Start(pathToStartFallout);
             }
 
             var result = JsonUtils.Serialize(new SerializableProcessWrapper(launchedProcess),false,false);
 
-            _logger.LogVerbose($"Process Launched: {result}");
+            _logger.LogVerbose($"Process {launchedProcess?.Id} Launched: {result}");
+        }
+
+        private bool UseProcessStartInfo(string path, bool useScriptExtender)
+        {
+            var result = Fallout4Instance.CheckSteamPath(path);
+            if (useScriptExtender && IsScriptExtender(path)) { result = true; }
+            return result;
+        }
+
+
+        private string UseScriptExtenderIfPresent(string launcherPath)
+        {
+            if (PathToFalloutFolder == string.Empty) return launcherPath;
+
+            var curFolder = new DirectoryInfo(PathToFalloutFolder);
+
+            var f4sePath = Path.Combine(curFolder.FullName ?? "", "f4se_loader.exe");
+            if (File.Exists(f4sePath))
+            {
+                _logger.LogVerbose($"Starting using F4SE");
+                return f4sePath;
+            }
+            return launcherPath;
+        }
+
+
+        private bool IsScriptExtender(string path)
+        {
+            return path.Contains("f4se_loader.exe", StringComparison.InvariantCultureIgnoreCase);
         }
 
 
